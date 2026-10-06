@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MemeVault — The internet's meme locker</title>
+<style>
+:root{--bg:#09090d;--panel:#11121a;--panel2:#171925;--text:#f5f7ff;--muted:#9298ad;--accent:#8b5cf6;--accent2:#ec4899;--border:#25283a;--danger:#ef4444}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 80% -10%,#251447 0,#09090d 34%),var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif}
+button,input,select,textarea{font:inherit}button{cursor:pointer;border:0}.app{max-width:1180px;margin:auto;padding:18px 16px 70px}
+header{display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:10;padding:12px 0;background:rgba(9,9,13,.88);backdrop-filter:blur(16px)}
+.logo{font-weight:900;font-size:24px;letter-spacing:-1px}.logo span{color:var(--accent2)}
+.search{flex:1;background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:11px 14px;color:var(--text);outline:none}.search:focus{border-color:var(--accent)}
+.btn{background:var(--panel2);color:var(--text);border:1px solid var(--border);padding:10px 14px;border-radius:12px;font-weight:700}.btn:hover{border-color:#4a4f6d}.primary{background:linear-gradient(135deg,var(--accent),var(--accent2));border:0}
+nav{display:flex;gap:8px;overflow:auto;padding:8px 0 18px}.tab{white-space:nowrap;padding:9px 14px;border-radius:999px;background:var(--panel);color:var(--muted);border:1px solid var(--border)}.tab.active{background:#241744;color:white;border-color:#6d45bb}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:20px}.feed{min-width:0}
+.card{background:rgba(17,18,26,.94);border:1px solid var(--border);border-radius:18px;margin-bottom:18px;overflow:hidden;box-shadow:0 10px 30px #0003}.meta{display:flex;justify-content:space-between;align-items:center;padding:14px 16px}.user{font-weight:800}.time{color:var(--muted);font-size:13px}.meme-img{width:100%;display:block;max-height:680px;object-fit:contain;background:#050507}.caption{padding:13px 16px 4px;font-size:17px;font-weight:700}.tags{padding:7px 16px;color:#a8aee0;font-size:13px}.actions{display:flex;align-items:center;gap:7px;padding:10px 12px 13px}.vote{display:flex;align-items:center;gap:7px;background:var(--panel2);border:1px solid var(--border);color:white;border-radius:11px;padding:8px 10px}.vote.on{border-color:var(--accent);color:#c4b5fd}.icon{font-size:18px}.spacer{flex:1}.side{position:sticky;top:82px;height:max-content}.sidebox{background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:18px;margin-bottom:15px}.side h3{margin:0 0 10px}.side p{color:var(--muted);line-height:1.5;font-size:14px}.trend{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}.trend:last-child{border:0}.rank{font-weight:900;color:var(--accent2)}.muted{color:var(--muted)}
+.empty{text-align:center;padding:60px 20px;color:var(--muted)}.modal{position:fixed;inset:0;background:#000a;display:none;align-items:center;justify-content:center;padding:18px;z-index:30}.modal.show{display:flex}.modalbox{width:min(560px,100%);background:#11121a;border:1px solid var(--border);border-radius:20px;padding:20px;max-height:90vh;overflow:auto}.modalhead{display:flex;justify-content:space-between;align-items:center}.close{background:transparent;color:white;font-size:25px}.field{margin:13px 0}.field label{display:block;margin-bottom:6px;font-weight:700}.field input,.field textarea,.field select{width:100%;background:#090a10;border:1px solid var(--border);border-radius:11px;padding:11px;color:white;outline:none}.field textarea{min-height:90px;resize:vertical}.preview{max-height:300px;max-width:100%;display:block;margin:12px auto;border-radius:12px}.notice{padding:12px;border-radius:12px;background:#1d1728;color:#c9b7ff;font-size:13px;line-height:1.45}.report{color:#ff8b8b;background:transparent}.comment{padding:12px 0;border-bottom:1px solid var(--border)}.comment b{font-size:14px}.comment p{margin:5px 0 0;color:#d8d9e4}.footer{color:var(--muted);font-size:12px;text-align:center;margin-top:35px}
+@media(max-width:800px){.layout{grid-template-columns:1fr}.side{display:none}.search{max-width:none}header .btn:not(.primary){display:none}.app{padding:10px}.logo{font-size:21px}.meme-img{max-height:75vh}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div class="logo">Meme<span>Vault</span> 😈</div>
+  <input id="search" class="search" placeholder="Search memes, tags or users…">
+  <button class="btn primary" onclick="openUpload()">＋ Upload</button>
+</header>
+<nav id="tabs">
+  <button class="tab active" data-sort="trending">🔥 Trending</button>
+  <button class="tab" data-sort="new">🆕 New</button>
+  <button class="tab" data-sort="top">⭐ Top</button>
+  <button class="tab" data-sort="random">🎲 Random</button>
+  <button class="tab" data-sort="gaming">🎮 Gaming</button>
+  <button class="tab" data-sort="school">📚 School</button>
+  <button class="tab" data-sort="animals">🐸 Animals</button>
+  <button class="tab" data-sort="dark">🖤 Dark Humor</button>
+</nav>
+<div class="layout">
+<main id="feed" class="feed"></main>
+<aside class="side">
+  <div class="sidebox">
+    <h3>Welcome to MemeVault</h3>
+    <p>Post memes. Find chaos. Vote on greatness. Dark humor is allowed — but there are still lines.</p>
+    <button class="btn primary" style="width:100%" onclick="openUpload()">Post a meme</button>
+  </div>
+  <div class="sidebox">
+    <h3>🔥 Trending</h3>
+    <div id="trendingMini"></div>
+  </div>
+  <div class="sidebox">
+    <h3>Community rules</h3>
+    <p>Dark humor, profanity and edgy jokes can be allowed. No credible threats, encouragement of real-world harm, sexual content involving minors, doxxing, targeted harassment or scams.</p>
+    <button class="btn report" onclick="alert('Thanks — in the full backend version this opens the moderation/report queue.')">Report a problem</button>
+  </div>
+</aside>
+</div>
+<div class="footer">MemeVault prototype • Demo data is stored locally in your browser • Copyright reports and moderation would be connected to a backend in production.</div>
+</div>
+
+<div id="uploadModal" class="modal" onclick="if(event.target===this)closeModal('uploadModal')">
+<div class="modalbox"><div class="modalhead"><h2>Upload a meme</h2><button class="close" onclick="closeModal('uploadModal')">×</button></div>
+<div class="notice">Dark humor is welcome within reason. Don't upload threats, doxxing, sexual content involving minors, encouragement of self-harm/violence, or content you don't have the right to share.</div>
+<div class="field"><label>Image / GIF</label><input id="file" type="file" accept="image/*"><img id="preview" class="preview" style="display:none"></div>
+<div class="field"><label>Caption</label><textarea id="caption" placeholder="Give the meme a caption…"></textarea></div>
+<div class="field"><label>Category</label><select id="category"><option>Random</option><option>Gaming</option><option>School</option><option>Animals</option><option>Sports</option><option>Dark Humor</option><option>Movies & TV</option><option>Wholesome</option></select></div>
+<div class="field"><label>Tags</label><input id="tags" placeholder="funny, relatable, gaming"></div>
+<button class="btn primary" style="width:100%" onclick="publish()">Publish meme 🚀</button>
+</div></div>
+
+<div id="commentsModal" class="modal" onclick="if(event.target===this)closeModal('commentsModal')">
+<div class="modalbox"><div class="modalhead"><h2 id="commentTitle">Comments</h2><button class="close" onclick="closeModal('commentsModal')">×</button></div>
+<div id="comments"></div>
+<div class="field"><input id="newComment" placeholder="Write a comment…"></div><button class="btn primary" style="width:100%" onclick="addComment()">Comment</button></div></div>
+
+<script>
+const demo=[
+{id:1,user:"ByteBandit",caption:"When the teacher says the test is 'easy'.",cat:"School",tags:["school","relatable"],score:482,comments:[["MemeLord","This is painfully accurate 💀"]],img:"https://picsum.photos/seed/schoolmeme/900/700"},
+{id:2,user:"PixelGoblin",caption:"Me after spending 6 hours fixing a bug that was a missing semicolon.",cat:"Gaming",tags:["gaming","developer"],score:391,comments:[["404","We've all been there."]],img:"https://picsum.photos/seed/gamingmeme/900/700"},
+{id:3,user:"FrogEnjoyer",caption:"The intrusive thought has entered the chat.",cat:"Animals",tags:["frog","random"],score:735,comments:[["Waffles","NOOO 😂"],["Kip","bro had one job"]],img:"https://picsum.photos/seed/frogmeme/900/700"},
+{id:4,user:"NightShift",caption:"My sleep schedule watching me make another terrible decision.",cat:"Dark Humor",tags:["dark","sleep"],score:612,comments:[["Toast","💀"],["Soda","fair"]],img:"https://picsum.photos/seed/darkmeme/900/700"},
+{id:5,user:"CapeMemer",caption:"POV: Cape Town weather changed its mind again.",cat:"Random",tags:["capetown","weather"],score:278,comments:[],img:"https://picsum.photos/seed/weather/900/700"}
+];
+let memes=JSON.parse(localStorage.getItem("memevault_memes")||"null")||demo;
+let currentSort="trending", currentCommentId=null;
+
+function save(){localStorage.setItem("memevault_memes",JSON.stringify(memes))}
+function score(m){return m.score}
+function filtered(){
+ let q=document.getElementById("search").value.toLowerCase().trim(), arr=[...memes];
+ if(q)arr=arr.filter(m=>(m.caption+" "+m.user+" "+m.tags.join(" ")+" "+m.cat).toLowerCase().includes(q));
+ if(currentSort==="new")arr.sort((a,b)=>b.id-a.id);
+ else if(currentSort==="top")arr.sort((a,b)=>b.score-a.score);
+ else if(currentSort==="random")arr.sort(()=>Math.random()-.5);
+ else if(["gaming","school","animals","dark"].includes(currentSort))arr=arr.filter(m=>m.cat.toLowerCase().includes(currentSort));
+ else arr.sort((a,b)=>(b.score+b.comments.length*20)-(a.score+a.comments.length*20));
+ return arr;
+}
+function render(){
+ const feed=document.getElementById("feed"), arr=filtered();
+ if(!arr.length){feed.innerHTML='<div class="empty"><h2>No memes found 😭</h2><p>Try another search or be the first to post one.</p></div>';return}
+ feed.innerHTML=arr.map(m=>`
+ <article class="card">
+  <div class="meta"><div><span class="user">@${esc(m.user)}</span> <span class="time">• just now</span></div><button class="btn" onclick="report(${m.id})">•••</button></div>
+  <img class="meme-img" src="${esc(m.img)}" alt="Meme" loading="lazy">
+  <div class="caption">${esc(m.caption)}</div>
+  <div class="tags">${m.tags.map(t=>"#"+esc(t)).join("  ")} · ${esc(m.cat)}</div>
+  <div class="actions">
+   <button class="vote" onclick="vote(${m.id},1)">⬆️ <b>${m.score}</b></button>
+   <button class="vote" onclick="vote(${m.id},-1)">⬇️</button>
+   <button class="vote" onclick="openComments(${m.id})">💬 ${m.comments.length}</button>
+   <div class="spacer"></div><button class="vote" onclick="share(${m.id})">↗ Share</button>
+  </div>
+ </article>`).join("");
+ const mini=[...memes].sort((a,b)=>b.score-a.score).slice(0,4);
+ document.getElementById("trendingMini").innerHTML=mini.map((m,i)=>`<div class="trend"><span class="rank">#${i+1}</span><div><b>${esc(m.caption.slice(0,42))}${m.caption.length>42?"…":""}</b><br><span class="muted">⬆ ${m.score}</span></div></div>`).join("");
+}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
+function vote(id,n){let m=memes.find(x=>x.id===id);m.score+=n;save();render()}
+function share(id){navigator.clipboard?.writeText(location.href+"#meme-"+id);alert("Meme link copied!")}
+function report(id){alert("Report received. In production, this would send the meme to the moderation queue for review.")}
+function openUpload(){document.getElementById("uploadModal").classList.add("show")}
+function closeModal(id){document.getElementById(id).classList.remove("show")}
+document.getElementById("file").addEventListener("change",e=>{let f=e.target.files[0];if(f){let p=document.getElementById("preview");p.src=URL.createObjectURL(f);p.style.display="block"}})
+function publish(){
+ let f=document.getElementById("file").files[0], cap=document.getElementById("caption").value.trim();
+ if(!f||!cap){alert("Add an image and caption first.");return}
+ let reader=new FileReader();reader.onload=()=>{memes.unshift({id:Date.now(),user:"You",caption:cap,cat:document.getElementById("category").value,tags:document.getElementById("tags").value.split(",").map(x=>x.trim()).filter(Boolean),score:1,comments:[],img:reader.result});save();render();closeModal("uploadModal");document.getElementById("caption").value="";document.getElementById("tags").value="";document.getElementById("file").value="";document.getElementById("preview").style.display="none"};reader.readAsDataURL(f)
+}
+function openComments(id){currentCommentId=id;let m=memes.find(x=>x.id===id);document.getElementById("commentTitle").textContent=`Comments (${m.comments.length})`;document.getElementById("comments").innerHTML=m.comments.length?m.comments.map(c=>`<div class="comment"><b>@${esc(c[0])}</b><p>${esc(c[1])}</p></div>`).join(""):'<p class="muted">No comments yet. Be the first.</p>';document.getElementById("commentsModal").classList.add("show")}
+function addComment(){let v=document.getElementById("newComment").value.trim();if(!v)return;let m=memes.find(x=>x.id===currentCommentId);m.comments.push(["You",v]);document.getElementById("newComment").value="";save();openComments(currentCommentId);render()}
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));b.classList.add("active");currentSort=b.dataset.sort;render()});
+document.getElementById("search").addEventListener("input",render);render();
+</script>
+</body>
+</html>
